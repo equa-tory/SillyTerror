@@ -4,6 +4,7 @@ Shader "Custom/URP/ParticleLight_AllLights"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Intensity ("Light Intensity", Float) = 1
+        _Color ("Silhouette Color", Color) = (1,1,1,1)
     }
 
     SubShader
@@ -46,6 +47,7 @@ Shader "Custom/URP/ParticleLight_AllLights"
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
             float _Intensity;
+            float4 _Color;
 
             Varyings vert (Attributes v)
             {
@@ -58,27 +60,29 @@ Shader "Custom/URP/ParticleLight_AllLights"
 
             half4 frag (Varyings i) : SV_Target
             {
-                half4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
 
                 float lightFactor = 0;
 
                 #if defined(_ADDITIONAL_LIGHTS)
                 uint count = GetAdditionalLightsCount();
-
                 for (uint l = 0; l < count; l++)
                 {
                     Light light = GetAdditionalLight(l, i.worldPos);
-
-                    // URP УЖЕ учёл конус и расстояние
                     lightFactor = max(lightFactor, light.distanceAttenuation);
                 }
                 #endif
 
-                col.a *= lightFactor * _Intensity;
-                clip(col.a - 0.01);
+                float alpha = tex.a * lightFactor * _Intensity;
 
-                return col;
+                clip(alpha - 0.01);
+
+                return half4(
+                    _Color.rgb,      // чистый цвет
+                    alpha * _Color.a // альфа = маска * свет * интенсивность
+                );
             }
+
             ENDHLSL
         }
     }

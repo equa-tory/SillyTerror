@@ -10,7 +10,7 @@ using System.Collections.Generic;
 public class PlayerController : MonoBehaviour
 {
 
-    private Rigidbody rb;
+    public Rigidbody rb;
 
 
     [Header("Movement")]
@@ -39,8 +39,8 @@ public class PlayerController : MonoBehaviour
 
 
     [Header("Statements")]
-    private MovementState state;
-    private enum MovementState
+    public MovementState state;
+    public enum MovementState
     {
         walking,
         sprinting,

@@ -8,6 +8,7 @@ public class CoverAnimaitor : MonoBehaviour
 {
     [SerializeField] private Transform parent;
     [SerializeField] private float speed = 0.5f;
+    private bool playing = false;
 
     //--------------------------------------------------------------------------------------------
 
@@ -22,7 +23,8 @@ public class CoverAnimaitor : MonoBehaviour
 
     private IEnumerator DisableChildren()
     {
-
+        if (playing) yield break;
+        playing = true;
         foreach (Transform child in parent) child.gameObject.SetActive(true);
 
         foreach (Transform child in parent)
@@ -32,5 +34,6 @@ public class CoverAnimaitor : MonoBehaviour
         }
 
         parent.gameObject.SetActive(false);
+        playing = false;
     }
 }

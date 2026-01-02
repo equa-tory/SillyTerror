@@ -27,34 +27,35 @@ public class ViewBobbing : MonoBehaviour
 
     private void Update()
     {
+        EffectSpeed = pc.state == PlayerController.MovementState.sprinting
+            ? runningSpeed
+            : walkingSpeed;
 
-        // if(pc.isSprinting) EffectSpeed = runningSpeed;
-        // else EffectSpeed = walkingSpeed;
-
-        Vector3 inputVector = new Vector3(Input.GetAxis("Vertical"), 0f, Input.GetAxis("Horizontal"));
-        if (inputVector.magnitude > 0f)
+        if (pc.rb.velocity.magnitude > 0.1f)
         {
             SinTime += Time.deltaTime * EffectSpeed;
+
+            float sinY = -Mathf.Abs(EffectIntensity * Mathf.Sin(SinTime));
+            float sinX = Mathf.Cos(SinTime) * EffectIntensity * EffectIntensityX;
+
+            Vector3 targetOffset =
+                OriginalOffset +
+                Vector3.up * sinY +
+                FollowerInstance.transform.right * sinX;
+
+            FollowerInstance.posOffset = targetOffset;
         }
         else
         {
             SinTime = 0f;
-            FollowerInstance.posOffset = Vector3.Lerp(FollowerInstance.posOffset, Vector3.zero, Time.deltaTime * EffectSpeed);
-            // FollowerInstance.posOffset = Vector3.Lerp(FollowerInstance.posOffset, OriginalOffset, Time.deltaTime * EffectSpeed);
+            FollowerInstance.posOffset = Vector3.Lerp(
+                FollowerInstance.posOffset,
+                OriginalOffset,
+                Time.deltaTime * EffectSpeed
+            );
         }
-
-        float sinAmountY = -Mathf.Abs(EffectIntensity * Mathf.Sin(SinTime));
-        Vector3 sinAmountX = FollowerInstance.transform.right * EffectIntensity * Mathf.Cos(SinTime) * EffectIntensityX;
-
-        FollowerInstance.posOffset = new Vector3
-        {
-            x = OriginalOffset.x,
-            y = OriginalOffset.y + sinAmountY,
-            z = OriginalOffset.z
-        };
-
-        FollowerInstance.posOffset += sinAmountX;
     }
+
 
 
 }
