@@ -3,6 +3,8 @@
 
 using UnityEngine.SceneManagement;
 using UnityEngine;
+using Unity.VisualScripting;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class PlayerController : MonoBehaviour
@@ -12,6 +14,7 @@ public class PlayerController : MonoBehaviour
 
 
     [Header("Movement")]
+    [SerializeField] private float speedChangeRate = 1f;
     private float currentSpeed;
     [SerializeField] private float walkSpeed = 7f;
     [SerializeField] private float sprintSpeed = 12f;
@@ -50,6 +53,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputManager input;
 
 
+    [Header("Audio")]
+    [SerializeField] private List<AudioSource> stepSounds = new List<AudioSource>();
+    private float stepTimer = 0f;
+    [SerializeField] private float stepTimeMax = 0.2f;
+
+
     //--------------------------------------------------------------------------------------------
 
     private void OnValidate()
@@ -69,6 +78,19 @@ public class PlayerController : MonoBehaviour
         {
             transform.position = new Vector3(transform.position.x, 15, transform.position.z);
             rb.velocity = Vector3.zero;
+        }
+
+        if (stepTimer > 0f) stepTimer -= Time.deltaTime;
+        if (stepTimer > stepTimeMax) stepTimer = stepTimeMax;
+
+        if (rb.velocity != Vector3.zero && stepTimer <= 0f && grounded)
+        {
+            AudioSource stepSource = Instantiate(stepSounds[Random.Range(0, stepSounds.Count)], transform);
+            stepSource.volume = Random.Range(0.7f, 1f);
+            stepSource.pitch = Random.Range(0.9f, 1.1f);
+            stepSource.Play();
+            Destroy(stepSource.gameObject, stepSource.clip.length);
+            stepTimer = stepTimeMax / (currentSpeed / 1.5f);
         }
     }
 
@@ -106,17 +128,20 @@ public class PlayerController : MonoBehaviour
         if (isSprinting)
         {
             state = MovementState.sprinting;
-            currentSpeed = sprintSpeed;
+            // currentSpeed = sprintSpeed;
+            currentSpeed = Mathf.Lerp(currentSpeed, sprintSpeed, speedChangeRate * Time.deltaTime);
         }
         else if (grounded)
         {
             state = MovementState.walking;
-            currentSpeed = walkSpeed;
+            // currentSpeed = walkSpeed;
+            currentSpeed = Mathf.Lerp(currentSpeed, walkSpeed, 2 * speedChangeRate * Time.deltaTime);
         }
         else
         {
             state = MovementState.air;
-            currentSpeed = walkSpeed;
+            // currentSpeed = walkSpeed;
+            currentSpeed = Mathf.Lerp(currentSpeed, walkSpeed, 2 * speedChangeRate * Time.deltaTime);
         }
     }
 
